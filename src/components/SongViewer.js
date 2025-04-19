@@ -26,7 +26,7 @@ const SongViewer = ({ song, onClose }) => {
 
   const transposeContent = (content) => {
     return content.replace(/\[([^\]]+)\]/g, (match, chord) => {
-      return `[${transposeChord(chord)}]`;
+      return `${transposeChord(chord)}`;
     });
   };
 
