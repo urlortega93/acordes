@@ -9,7 +9,6 @@ const SongViewer = ({ song, onClose }) => {
   const animationRef = useRef(null);
   const lastUpdateRef = useRef(0);
 
-  // Calcular acordes transpuestos
   const transposeChord = (chord) => {
     if (!chord) return '';
     const chords = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -26,18 +25,17 @@ const SongViewer = ({ song, onClose }) => {
 
   const transposeContent = (content) => {
     return content.replace(/\[([^\]]+)\]/g, (match, chord) => {
-      return `${transposeChord(chord)}`;
+      return `<span class="text-blue-800 font-semibold">${transposeChord(chord)}</span>`;
     });
   };
 
-  // Animación de scrolling basado en BPM
   useEffect(() => {
     if (!isPlaying) {
       cancelAnimationFrame(animationRef.current);
       return;
     }
 
-    const scrollSpeed = (60 / song.bpm) * 1000; // ms por beat
+    const scrollSpeed = (60 / song.bpm) * 1000;
     const container = containerRef.current;
     const maxScroll = container.scrollHeight - container.clientHeight;
 
@@ -45,7 +43,7 @@ const SongViewer = ({ song, onClose }) => {
       if (!lastUpdateRef.current) lastUpdateRef.current = timestamp;
       const delta = timestamp - lastUpdateRef.current;
 
-      if (delta >= scrollSpeed / 4) { // Suavizar movimiento
+      if (delta >= scrollSpeed / 4) {
         const newPosition = currentPosition + (delta / scrollSpeed) * 100;
         if (newPosition >= maxScroll) {
           setCurrentPosition(0);
@@ -149,9 +147,10 @@ const SongViewer = ({ song, onClose }) => {
               <h3 className="text-lg font-semibold text-gray-800 mb-4 sticky top-0 bg-white py-2">
                 {section.type.charAt(0).toUpperCase() + section.type.slice(1)}
               </h3>
-              <pre className="whitespace-pre-wrap font-sans leading-relaxed">
-                {transposeContent(section.content)}
-              </pre>
+              <pre
+                className="whitespace-pre-wrap font-sans leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: transposeContent(section.content) }}
+              />
             </div>
           ))}
         </div>
@@ -161,3 +160,4 @@ const SongViewer = ({ song, onClose }) => {
 };
 
 export default SongViewer;
+
