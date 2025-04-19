@@ -1,33 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import SongForm from './components/SongForm';
 import SongList from './components/SongList';
 import SongViewPage from './components/SongViewPage';
 import PlaylistManager from './components/PlaylistManager';
 import PlaylistPlayer from './components/PlaylistPlayer';
-import { mockSongs, mockPlaylists } from './mock/data';
 
 const App = () => {
-  const [songs, setSongs] = useState(mockSongs);
-  const [playlists, setPlaylists] = useState(mockPlaylists);
+  const [songs, setSongs] = useState([]);
+  const [playlists, setPlaylists] = useState([]);  // Podrías agregar la lógica para playlists también.
   const [currentView, setCurrentView] = useState('list');
   const [editingSong, setEditingSong] = useState(null);
   const [viewingSong, setViewingSong] = useState(null);
   const [currentPlaylist, setCurrentPlaylist] = useState(null);
 
-  const handleSave = (song) => {
+  // Obtener las canciones desde la API al montar el componente
+  useEffect(() => {
+    const fetchSongs = async () => {
+      try {
+        const response = await fetch('/api/songs');  // Ruta de la API para obtener canciones
+        if (!response.ok) {
+          throw new Error('Error al obtener las canciones');
+        }
+        const data = await response.json();
+        setSongs(data);
+      } catch (error) {
+        console.error('Error al cargar las canciones:', error);
+      }
+    };
+
+    fetchSongs();
+  }, []);
+
+  // Guardar una canción (crear o actualizar)
+  const handleSave = async (song) => {
     if (editingSong && editingSong.id) {
-      setSongs(songs.map(s => s.id === editingSong.id ? { ...song, id: s.id } : s));
+      try {
+        const response = await fetch(`/api/songs/${editingSong.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(song),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Error al actualizar la canción');
+        }
+        const updatedSong = await response.json();
+        setSongs(songs.map(s => s.id === updatedSong.id ? updatedSong : s));
+      } catch (error) {
+        console.error('Error al actualizar la canción:', error);
+      }
     } else {
-      const newSong = { ...song, id: Date.now().toString() };
-      setSongs([...songs, newSong]);
+      try {
+        const response = await fetch('/api/songs', {
+          method: 'POST',
+          body: JSON.stringify(song),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Error al guardar la canción');
+        }
+        const newSong = await response.json();
+        setSongs([...songs, newSong]);
+      } catch (error) {
+        console.error('Error al crear la canción:', error);
+      }
     }
+
     setCurrentView('list');
     setEditingSong(null);
   };
 
-  const handleDelete = (id) => {
-    setSongs(songs.filter(song => song.id !== id));
+  // Eliminar una canción
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`/api/songs/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Error al eliminar la canción');
+      }
+      setSongs(songs.filter(song => song.id !== id));
+    } catch (error) {
+      console.error('Error al eliminar la canción:', error);
+    }
   };
 
   const handleEdit = (song) => {
