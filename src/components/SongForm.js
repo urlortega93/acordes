@@ -79,10 +79,28 @@ const SongForm = ({ song = null, onSave, onCancel }) => {
     return !(newErrors.title || newErrors.artist || newErrors.sections.some(e => e));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
+      // Aquí agregamos la lógica para guardar la canción en el backend
+      try {
+        const response = await fetch('/api/songs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          console.log('Canción guardada con éxito');
+          onSave(formData);  // Llamada para actualizar el estado o la lista de canciones
+        } else {
+          console.error('Error al guardar la canción');
+        }
+      } catch (error) {
+        console.error('Error al guardar la canción:', error);
+      }
     }
   };
 
@@ -193,13 +211,13 @@ const SongForm = ({ song = null, onSave, onCancel }) => {
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-6 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colores"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colores"
             >
               Guardar Canción
             </button>
@@ -211,5 +229,3 @@ const SongForm = ({ song = null, onSave, onCancel }) => {
 };
 
 export default SongForm;
-
-// DONE
