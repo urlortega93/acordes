@@ -1,7 +1,50 @@
-import React from 'react';
-import { mockSongs } from '../mock/data';
+import React, { useEffect, useState } from 'react';
 
-const SongList = ({ songs = mockSongs, onEdit, onView, onDelete }) => {
+const SongList = ({ onEdit, onView, onDelete }) => {
+  const [songs, setSongs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSongs = async () => {
+      try {
+        const response = await fetch('/api/songs');
+        if (!response.ok) {
+          throw new Error('Error al obtener las canciones');
+        }
+        const data = await response.json();
+        setSongs(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSongs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Cargando canciones...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Error al cargar las canciones</h2>
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!songs || songs.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 text-center">
@@ -67,5 +110,3 @@ const SongList = ({ songs = mockSongs, onEdit, onView, onDelete }) => {
 };
 
 export default SongList;
-
-// DONE
